@@ -234,6 +234,8 @@
     .grid-container {
       flex: 1;
       width: 100%;
+      min-height: 0;
+      min-width: 0;
       display: grid;
       gap: 12px;
       justify-content: center;
@@ -247,6 +249,8 @@
       height: 100%;
       max-width: 100%;
       max-height: 100%;
+      min-height: 0;
+      min-width: 0;
       background-color: #fff;
       border-radius: 20px;
       box-shadow: 0 6px 16px rgba(0,0,0,0.08);
@@ -264,6 +268,8 @@
     .image-card img, .image-card .emoji-display {
       width: 100%;
       height: 100%;
+      max-width: 100%;
+      max-height: 100%;
       object-fit: contain;
       pointer-events: none;
     }
@@ -271,7 +277,6 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 6rem;
       background-color: #f1f5f9;
     }
 
@@ -1183,8 +1188,8 @@
         else { cols = 4; rows = Math.ceil(count / 4); }
       }
 
-      gridContainer.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-      gridContainer.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+      gridContainer.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
+      gridContainer.style.gridTemplateRows = `repeat(${rows}, minmax(0, 1fr))`;
 
       targetImages.forEach(imgData => {
         const card = document.createElement('div');
@@ -1194,6 +1199,12 @@
           const emojiEl = document.createElement('div');
           emojiEl.className = 'emoji-display';
           emojiEl.textContent = imgData.value;
+          
+          // 表示行数・列数に応じて絵文字の大きさを自動調整
+          const maxVh = Math.floor(50 / rows);
+          const maxVw = Math.floor(70 / cols);
+          emojiEl.style.fontSize = `min(${maxVh}vh, ${maxVw}vw)`;
+
           card.appendChild(emojiEl);
         } else {
           const imgEl = document.createElement('img');
