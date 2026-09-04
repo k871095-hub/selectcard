@@ -515,7 +515,11 @@
   <!-- 2. メイン操作画面 -->
   <div id="main-screen" class="screen hidden">
     <div class="header-bar">
-      <button id="back-to-start" class="btn btn-secondary">← もどる</button>
+      <!-- もどるボタン（誤操作防止用3連打ラッパーを追加） -->
+      <div style="position: relative; display: flex; flex-direction: column; align-items: center;">
+        <button id="back-to-start" class="btn btn-secondary">← もどる</button>
+        <div id="tap-hint-back" class="tap-hint-badge" style="position: absolute; top: 100%; margin-top: 2px;">3連打でもどる</div>
+      </div>
       <div class="template-selector">
         <label for="template-select" style="font-weight: 600;">テンプレート:</label>
         <select id="template-select" class="select-input"></select>
@@ -820,7 +824,7 @@
     }
 
     // --- トリプルタップ設定ボタン制御 ---
-    function setupTripleTapTrigger(elementId, hintId) {
+    function setupTripleTapTrigger(elementId, hintId, callback) {
       let tapCount = 0;
       let lastTapTime = 0;
       const el = document.getElementById(elementId);
@@ -847,7 +851,9 @@
         } else if (tapCount >= 3) {
           tapCount = 0;
           if (hint) { hint.classList.remove('show'); }
-          openSettings();
+          if (typeof callback === 'function') {
+            callback();
+          }
         }
 
         setTimeout(() => {
@@ -859,8 +865,14 @@
       });
     }
 
-    setupTripleTapTrigger('config-trigger', 'tap-hint-start');
-    setupTripleTapTrigger('config-trigger-main', 'tap-hint-main');
+    setupTripleTapTrigger('config-trigger', 'tap-hint-start', openSettings);
+    setupTripleTapTrigger('config-trigger-main', 'tap-hint-main', openSettings);
+
+    // もどるボタンも3連打で動作するように設定
+    setupTripleTapTrigger('back-to-start', 'tap-hint-back', () => {
+      mainScreen.classList.add('hidden');
+      startScreen.classList.remove('hidden');
+    });
 
     // --- レイアウトモード制御 ---
     function setLayoutMode(mode) {
@@ -903,11 +915,6 @@
       startScreen.classList.add('hidden');
       mainScreen.classList.remove('hidden');
       renderMainGrid();
-    });
-
-    document.getElementById('back-to-start').addEventListener('click', () => {
-      mainScreen.classList.add('hidden');
-      startScreen.classList.remove('hidden');
     });
 
     document.getElementById('close-settings').addEventListener('click', () => {
