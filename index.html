@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="img.png">
+  <title>選んでタッチ！</title>
+
+  <!-- Google Fonts: Klee One -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      touch-action: manipulation;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Klee One', cursive, sans-serif;
+      background-color: #f0f9ff;
+      color: #333;
+    }
+
+    /* 共通ボタン設定 */
+    .btn {
+      font-family: 'Klee One', cursive, sans-serif;
+      border: none;
+      border-radius: 16px;
+      padding: 10px 20px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+      transition: transform 0.1s, background-color 0.2s, box-shadow 0.2s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn:active {
+      transform: scale(0.96);
+    }
+    .btn-primary {
+      background-color: #4f46e5;
+      color: #fff;
+    }
+    .btn-secondary {
+      background-color: #64748b;
+      color: #fff;
+    }
+    .btn-success {
+      background-color: #10b981;
+      color: #fff;
+    }
+    .btn-danger {
+      background-color: #ef4444;
+      color: #fff;
+    }
+
+    /* 画面切り替え用 */
+    .screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background-color: #f0f9ff;
+      z-index: 10;
+    }
+    .hidden {
+      display: none !important;
+    }
+
+    /* スタート画面 */
+    #start-screen {
+      background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+    }
+    .title-container {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .app-title {
+      font-size: 3.2rem;
+      color: #1e3a8a;
+      margin: 0 0 10px 0;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    }
+    .app-subtitle {
+      font-size: 1.3rem;
+      color: #3b82f6;
+      margin: 0;
+    }
+
+    /* レイアウトモード選択スタイル */
+    .mode-select-container {
+      margin-bottom: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .mode-label {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #1e3a8a;
+    }
+    .mode-options {
+      display: flex;
+      gap: 10px;
+      background-color: rgba(255, 255, 255, 0.7);
+      padding: 6px;
+      border-radius: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+    .mode-btn {
+      font-family: 'Klee One', cursive, sans-serif;
+      border: 2px solid transparent;
+      background: transparent;
+      padding: 8px 18px;
+      border-radius: 14px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #64748b;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .mode-btn.active {
+      background-color: #ffffff;
+      color: #4f46e5;
+      border-color: #818cf8;
+      box-shadow: 0 2px 8px rgba(79, 70, 229, 0.15);
+    }
+
+    .start-btn {
+      font-size: 2rem;
+      padding: 18px 50px;
+      border-radius: 50px;
+      background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+      color: white;
+      border: 4px solid #fff;
+      box-shadow: 0 8px 20px rgba(255, 107, 107, 0.4);
+    }
+
+    /* トリプルタップ設定ボタン */
+    .config-trigger-wrapper {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 20;
+    }
+    .config-btn-trigger {
+      width: 56px;
+      height: 56px;
+      background-color: rgba(255, 255, 255, 0.9);
+      border: 2px solid #94a3b8;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      cursor: pointer;
+    }
+    .tap-hint-badge {
+      margin-top: 4px;
+      background-color: #ef4444;
+      color: white;
+      font-size: 0.75rem;
+      font-weight: bold;
+      padding: 2px 8px;
+      border-radius: 10px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .tap-hint-badge.show {
+      opacity: 1;
+    }
+
+    /* メイン操作画面 */
+    #main-screen {
+      background-color: #f8fafc;
+      padding: 12px;
+      justify-content: flex-start;
+    }
+    .header-bar {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      gap: 8px;
+    }
+    .template-selector {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .select-input {
+      font-family: 'Klee One', cursive, sans-serif;
+      font-size: 1.1rem;
+      padding: 8px 14px;
+      border-radius: 12px;
+      border: 2px solid #cbd5e1;
+      background-color: #fff;
+      max-width: 200px;
+    }
+
+    /* 画像表示グリッドエリア */
+    .grid-container {
+      flex: 1;
+      width: 100%;
+      display: grid;
+      gap: 12px;
+      justify-content: center;
+      align-content: center;
+      align-items: center;
+      justify-items: center;
+    }
+
+    .image-card {
+      width: 100%;
+      height: 100%;
+      max-width: 100%;
+      max-height: 100%;
+      background-color: #fff;
+      border-radius: 20px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border: 4px solid #fff;
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+    .image-card:active {
+      transform: scale(0.97);
+    }
+    .image-card img, .image-card .emoji-display {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      pointer-events: none;
+    }
+    .image-card .emoji-display {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 6rem;
+      background-color: #f1f5f9;
+    }
+
+    /* 横一列モード時に枠が縦長にならないようアスペクト比を1:1に保持 */
+    .grid-container.layout-row .image-card {
+      aspect-ratio: 1 / 1;
+      width: auto;
+      height: auto;
+      max-width: 100%;
+      max-height: 100%;
+    }
+
+    /* クローズアップ & フェードアウト演出 */
+    .image-card.fade-out {
+      opacity: 0 !important;
+      transform: scale(0.6) !important;
+      pointer-events: none;
+      transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+    }
+
+    .zoom-clone {
+      position: fixed;
+      z-index: 80;
+      transition: all 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
+      border-radius: 32px;
+      border: 6px solid #fff;
+      background-color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    /* 設定画面 Modal */
+    #settings-screen {
+      background-color: rgba(15, 23, 42, 0.65);
+      z-index: 100;
+    }
+    .settings-card {
+      width: 92%;
+      max-width: 820px;
+      max-height: 90vh;
+      background-color: #fff;
+      border-radius: 24px;
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+      overflow-y: auto;
+    }
+    .settings-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #f1f5f9;
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+    }
+    .settings-title {
+      font-size: 1.6rem;
+      margin: 0;
+      color: #1e293b;
+    }
+    .settings-section {
+      margin-bottom: 20px;
+    }
+    .section-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 8px;
+      border-left: 4px solid #4f46e5;
+      padding-left: 8px;
+    }
+
+    /* ライブラリ管理・テンプレート編集 */
+    .library-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+      gap: 10px;
+      max-height: 180px;
+      overflow-y: auto;
+      padding: 10px;
+      background-color: #f8fafc;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+    }
+    .library-item {
+      position: relative;
+      width: 90px;
+      height: 90px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 3px solid #cbd5e1;
+      background-color: #fff;
+      cursor: pointer;
+    }
+    .library-item.selected {
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 2px #818cf8;
+    }
+    .library-item img, .library-item .emoji-thumb {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .library-item .emoji-thumb {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.8rem;
+    }
+    .library-item .check-mark {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      background-color: #4f46e5;
+      color: white;
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: bold;
+    }
+    .library-item.selected .check-mark {
+      display: flex;
+    }
+    .library-item .delete-btn {
+      position: absolute;
+      bottom: 4px;
+      right: 4px;
+      background-color: rgba(239, 68, 68, 0.9);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 2px 6px;
+      font-size: 0.65rem;
+      cursor: pointer;
+    }
+
+    .form-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .text-input {
+      font-family: 'Klee One', cursive, sans-serif;
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+      font-size: 1rem;
+    }
+
+    /* 保存済みテンプレートアイテム */
+    .template-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      background-color: #f8fafc;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+    }
+    .template-item-name {
+      font-weight: 600;
+      color: #1e293b;
+    }
+
+    /* トースト通知 */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background-color: #1e293b;
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 30px;
+      font-size: 1rem;
+      font-weight: 600;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      z-index: 200;
+      opacity: 0;
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
+      pointer-events: none;
+    }
+    #toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    /* 演出用 Canvas Overlay */
+    #effect-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 50;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1. スタート画面 -->
+  <div id="start-screen" class="screen">
+    <div class="title-container">
+      <h1 class="app-title">選んでタッチ！</h1>
+      <p class="app-subtitle">がぞうをえらんで タッチしてみよう</p>
+    </div>
+
+    <!-- レイアウトモード選択 -->
+    <div class="mode-select-container">
+      <div class="mode-label">ならびかた:</div>
+      <div class="mode-options">
+        <button type="button" class="mode-btn active" data-mode="grid">
+          <span>田</span> グリッド
+        </button>
+        <button type="button" class="mode-btn" data-mode="row">
+          <span>▬</span> よこいちれつ
+        </button>
+      </div>
+    </div>
+
+    <button id="start-btn" class="btn start-btn">スタート！</button>
+
+    <!-- トリプルタップ用設定ボタン -->
+    <div class="config-trigger-wrapper">
+      <div id="config-trigger" class="config-btn-trigger">⚙️</div>
+      <div id="tap-hint-start" class="tap-hint-badge">3連打で設定</div>
+    </div>
+  </div>
+
+  <!-- 2. メイン操作画面 -->
+  <div id="main-screen" class="screen hidden">
+    <div class="header-bar">
+      <button id="back-to-start" class="btn btn-secondary">← もどる</button>
+      <div class="template-selector">
+        <label for="template-select" style="font-weight: 600;">テンプレート:</label>
+        <select id="template-select" class="select-input"></select>
+      </div>
+      <div class="template-selector">
+        <label for="layout-select-main" style="font-weight: 600;">ならび:</label>
+        <select id="layout-select-main" class="select-input" style="max-width: 120px;">
+          <option value="grid">グリッド</option>
+          <option value="row">よこいちれつ</option>
+        </select>
+      </div>
+      <!-- メイン画面上の設定ボタン（3連打） -->
+      <div class="config-trigger-wrapper" style="position: static;">
+        <div id="config-trigger-main" class="config-btn-trigger" style="width:42px; height:42px; font-size:1.2rem;">⚙️</div>
+        <div id="tap-hint-main" class="tap-hint-badge">3連打で設定</div>
+      </div>
+    </div>
+
+    <!-- 画像表示グリッド -->
+    <div id="grid-container" class="grid-container"></div>
+  </div>
+
+  <!-- 3. 設定画面（モーダル） -->
+  <div id="settings-screen" class="screen hidden">
+    <div class="settings-card">
+      <div class="settings-header">
+        <h2 class="settings-title">⚙️ 設定（せんせい・ほごしゃ用）</h2>
+        <button id="close-settings" class="btn btn-secondary">とじる</button>
+      </div>
+
+      <!-- 画像登録 -->
+      <div class="settings-section">
+        <div class="section-title">1. 画像の登録（端末から選択）</div>
+        <div class="form-group">
+          <input type="file" id="image-file-input" accept="image/*" style="display: none;">
+          <button id="upload-image-btn" class="btn btn-primary">📁 ファイルから画像を追加</button>
+        </div>
+      </div>
+
+      <!-- テンプレート新規作成・編集 -->
+      <div class="settings-section">
+        <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
+          <span>2. テンプレートの作成・編集</span>
+          <button id="new-template-btn" class="btn btn-secondary" style="padding: 4px 12px; font-size: 0.85rem;">＋ 新規作成モード</button>
+        </div>
+        <p style="font-size: 0.85rem; color: #64748b; margin-top: -4px;">画面に表示したい画像を一覧からクリックして選択してください。</p>
+        
+        <div class="form-group">
+          <input type="text" id="template-name-input" class="text-input" placeholder="テンプレート名（例: どうぶつ）">
+          <button id="save-template-btn" class="btn btn-success">➕ 新規保存</button>
+        </div>
+
+        <div class="section-title" style="font-size: 0.95rem; border: none; margin-top: 10px;">画像ライブラリ（タップして選択）</div>
+        <div id="library-grid" class="library-grid"></div>
+      </div>
+
+      <!-- テンプレート管理一覧 -->
+      <div class="settings-section">
+        <div class="section-title">3. 保存済みテンプレートの削除・編集</div>
+        <div id="saved-templates-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- トースト通知 -->
+  <div id="toast"></div>
+
+  <!-- 演出用 Canvas -->
+  <canvas id="effect-canvas"></canvas>
+
+  <script>
+    // --- 定数 & プレフィックス設定 ---
+    const APP_PREFIX = 'app_select_touch_';
+    const DB_NAME = APP_PREFIX + 'db';
+    const DB_STORE = 'images';
+
+    // デフォルト画像
+    const DEFAULT_IMAGES = [
+      { id: 'def_1', type: 'emoji', value: '🐱', name: 'ねこ' },
+      { id: 'def_2', type: 'emoji', value: '🐶', name: 'いぬ' },
+      { id: 'def_3', type: 'emoji', value: '🚗', name: 'くるま' },
+      { id: 'def_4', type: 'emoji', value: '🍎', name: 'りんご' },
+      { id: 'def_5', type: 'emoji', value: '⭐', name: 'ほし' },
+      { id: 'def_6', type: 'emoji', value: '🌸', name: 'はな' }
+    ];
+
+    // デフォルトテンプレート
+    const DEFAULT_TEMPLATES = [
+      { id: 'tpl_default_1', name: 'どうぶつと乗り物', imageIds: ['def_1', 'def_2', 'def_3', 'def_4'] }
+    ];
+
+    // アプリ状態
+    let imageLibrary = [];
+    let templates = [];
+    let currentTemplateId = '';
+    let layoutMode = 'grid'; // 'grid' または 'row'
+    let editingTemplateId = null; // 編集中のテンプレートID
+    let selectedImageIdsForTpl = new Set(); // テンプレート作成時の選択画像ID集合
+    let isTouchBlocked = false;
+    let db = null;
+
+    // 音声 (Web Audio API)
+    let audioCtx = null;
+
+    // Canvas & 演出
+    const canvas = document.getElementById('effect-canvas');
+    const ctx = canvas.getContext('2d');
+    let animationFrameId = null;
+
+    // --- トースト通知機能 ---
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2500);
+    }
+
+    // --- Gesture Protection ---
+    document.addEventListener('gesturestart', (e) => e.preventDefault());
+    document.addEventListener('dblclick', (e) => e.preventDefault());
+
+    // --- IndexedDB & LocalStorage ストレージ制御 ---
+    function initDB() {
+      return new Promise((resolve) => {
+        try {
+          const request = indexedDB.open(DB_NAME, 1);
+          request.onupgradeneeded = (e) => {
+            const database = e.target.result;
+            if (!database.objectStoreNames.contains(DB_STORE)) {
+              database.createObjectStore(DB_STORE, { keyPath: 'id' });
+            }
+          };
+          request.onsuccess = (e) => {
+            db = e.target.result;
+            resolve(true);
+          };
+          request.onerror = () => {
+            console.warn('IndexedDB unavailable, falling back to LocalStorage.');
+            db = null;
+            resolve(false);
+          };
+        } catch (err) {
+          console.warn('IndexedDB initialization failed:', err);
+          db = null;
+          resolve(false);
+        }
+      });
+    }
+
+    async function saveImageToStorage(imageData) {
+      if (db) {
+        try {
+          const tx = db.transaction(DB_STORE, 'readwrite');
+          const store = tx.objectStore(DB_STORE);
+          store.put(imageData);
+          await new Promise((res, rej) => {
+            tx.oncomplete = res;
+            tx.onerror = rej;
+          });
+          return;
+        } catch (e) {
+          console.warn('IndexedDB write failed', e);
+        }
+      }
+      const customStr = localStorage.getItem(APP_PREFIX + 'custom_images') || '[]';
+      const custom = JSON.parse(customStr);
+      custom.push(imageData);
+      localStorage.setItem(APP_PREFIX + 'custom_images', JSON.stringify(custom));
+    }
+
+    async function loadCustomImagesFromStorage() {
+      if (db) {
+        try {
+          const tx = db.transaction(DB_STORE, 'readonly');
+          const store = tx.objectStore(DB_STORE);
+          const request = store.getAll();
+          const result = await new Promise((res, rej) => {
+            request.onsuccess = () => res(request.result);
+            request.onerror = rej;
+          });
+          if (result && result.length > 0) return result;
+        } catch (e) {
+          console.warn('IndexedDB read failed', e);
+        }
+      }
+      const customStr = localStorage.getItem(APP_PREFIX + 'custom_images') || '[]';
+      return JSON.parse(customStr);
+    }
+
+    async function deleteImageFromStorage(id) {
+      if (db) {
+        try {
+          const tx = db.transaction(DB_STORE, 'readwrite');
+          const store = tx.objectStore(DB_STORE);
+          store.delete(id);
+          await new Promise((res, rej) => {
+            tx.oncomplete = res;
+            tx.onerror = rej;
+          });
+        } catch (e) {
+          console.warn('IndexedDB delete failed', e);
+        }
+      }
+      const customStr = localStorage.getItem(APP_PREFIX + 'custom_images') || '[]';
+      let custom = JSON.parse(customStr);
+      custom = custom.filter(img => img.id !== id);
+      localStorage.setItem(APP_PREFIX + 'custom_images', JSON.stringify(custom));
+    }
+
+    function loadSettings() {
+      const savedTemplates = localStorage.getItem(APP_PREFIX + 'templates');
+      if (savedTemplates) {
+        try {
+          templates = JSON.parse(savedTemplates);
+        } catch(e) {
+          templates = [...DEFAULT_TEMPLATES];
+        }
+      } else {
+        templates = [...DEFAULT_TEMPLATES];
+        saveTemplates();
+      }
+
+      const savedCurrentTpl = localStorage.getItem(APP_PREFIX + 'current_template');
+      if (savedCurrentTpl && templates.some(t => t.id === savedCurrentTpl)) {
+        currentTemplateId = savedCurrentTpl;
+      } else if (templates.length > 0) {
+        currentTemplateId = templates[0].id;
+      }
+    }
+
+    function saveTemplates() {
+      localStorage.setItem(APP_PREFIX + 'templates', JSON.stringify(templates));
+    }
+
+    function saveCurrentTemplateId(id) {
+      currentTemplateId = id;
+      localStorage.setItem(APP_PREFIX + 'current_template', id);
+    }
+
+    // --- Web Audio API (効果音再生) ---
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function playCheerSound() {
+      if (!audioCtx) return;
+
+      const now = audioCtx.currentTime;
+
+      // ファンファーレ (ド・ミ・ソ・ド 和音)
+      const arpeggio = [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98];
+      arpeggio.forEach((freq, idx) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, now + idx * 0.07);
+
+        gain.gain.setValueAtTime(0.35, now + idx * 0.07);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.07 + 0.5);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start(now + idx * 0.07);
+        osc.stop(now + idx * 0.07 + 0.5);
+      });
+
+      // スプレー歓声風ノイズ
+      const bufferSize = audioCtx.sampleRate * 1.2;
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+
+      const noise = audioCtx.createBufferSource();
+      noise.buffer = buffer;
+
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(800, now);
+      filter.frequency.linearRampToValueAtTime(3200, now + 1.0);
+
+      const noiseGain = audioCtx.createGain();
+      noiseGain.gain.setValueAtTime(0.15, now);
+      noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+
+      noise.connect(filter);
+      filter.connect(noiseGain);
+      noiseGain.connect(audioCtx.destination);
+
+      noise.start(now);
+      noise.stop(now + 1.2);
+    }
+
+    // --- トリプルタップ設定ボタン制御 ---
+    function setupTripleTapTrigger(elementId, hintId) {
+      let tapCount = 0;
+      let lastTapTime = 0;
+      const el = document.getElementById(elementId);
+      const hint = document.getElementById(hintId);
+
+      if (!el) return;
+
+      el.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        const currentTime = new Date().getTime();
+        const tapInterval = currentTime - lastTapTime;
+
+        if (tapInterval < 500) {
+          tapCount++;
+        } else {
+          tapCount = 1;
+        }
+        lastTapTime = currentTime;
+
+        if (tapCount === 1) {
+          if (hint) { hint.textContent = 'あと2回'; hint.classList.add('show'); }
+        } else if (tapCount === 2) {
+          if (hint) { hint.textContent = 'あと1回'; hint.classList.add('show'); }
+        } else if (tapCount >= 3) {
+          tapCount = 0;
+          if (hint) { hint.classList.remove('show'); }
+          openSettings();
+        }
+
+        setTimeout(() => {
+          if (new Date().getTime() - lastTapTime >= 500) {
+            tapCount = 0;
+            if (hint) hint.classList.remove('show');
+          }
+        }, 600);
+      });
+    }
+
+    setupTripleTapTrigger('config-trigger', 'tap-hint-start');
+    setupTripleTapTrigger('config-trigger-main', 'tap-hint-main');
+
+    // --- レイアウトモード制御 ---
+    function setLayoutMode(mode) {
+      layoutMode = mode;
+      localStorage.setItem(APP_PREFIX + 'layout_mode', mode);
+
+      document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.mode === mode);
+      });
+
+      const layoutSelectMain = document.getElementById('layout-select-main');
+      if (layoutSelectMain) layoutSelectMain.value = mode;
+
+      if (!mainScreen.classList.contains('hidden')) {
+        renderMainGrid();
+      }
+    }
+
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const mode = e.currentTarget.dataset.mode;
+        setLayoutMode(mode);
+      });
+    });
+
+    const layoutSelectMain = document.getElementById('layout-select-main');
+    if (layoutSelectMain) {
+      layoutSelectMain.addEventListener('change', (e) => {
+        setLayoutMode(e.target.value);
+      });
+    }
+
+    // --- UI Navigation ---
+    const startScreen = document.getElementById('start-screen');
+    const mainScreen = document.getElementById('main-screen');
+    const settingsScreen = document.getElementById('settings-screen');
+
+    document.getElementById('start-btn').addEventListener('click', () => {
+      initAudio();
+      startScreen.classList.add('hidden');
+      mainScreen.classList.remove('hidden');
+      renderMainGrid();
+    });
+
+    document.getElementById('back-to-start').addEventListener('click', () => {
+      mainScreen.classList.add('hidden');
+      startScreen.classList.remove('hidden');
+    });
+
+    document.getElementById('close-settings').addEventListener('click', () => {
+      settingsScreen.classList.add('hidden');
+      renderMainGrid();
+    });
+
+    // --- 設定画面・テンプレート管理ロジック ---
+    function resetTemplateForm() {
+      editingTemplateId = null;
+      document.getElementById('template-name-input').value = '';
+      selectedImageIdsForTpl.clear();
+      document.getElementById('save-template-btn').textContent = '➕ 新規保存';
+      renderSettingsLibrary();
+    }
+
+    document.getElementById('new-template-btn').addEventListener('click', () => {
+      resetTemplateForm();
+      showToast('新規テンプレート作成モードに切り替えました');
+    });
+
+    function openSettings() {
+      initAudio();
+      resetTemplateForm();
+      renderSavedTemplatesList();
+      settingsScreen.classList.remove('hidden');
+    }
+
+    // 画像ライブラリ描画（設定画面内）
+    function renderSettingsLibrary() {
+      const libGrid = document.getElementById('library-grid');
+      libGrid.innerHTML = '';
+
+      imageLibrary.forEach(img => {
+        const item = document.createElement('div');
+        item.className = 'library-item';
+        if (selectedImageIdsForTpl.has(img.id)) {
+          item.classList.add('selected');
+        }
+
+        if (img.type === 'emoji') {
+          const thumb = document.createElement('div');
+          thumb.className = 'emoji-thumb';
+          thumb.textContent = img.value;
+          item.appendChild(thumb);
+        } else {
+          const imgEl = document.createElement('img');
+          imgEl.src = img.value;
+          item.appendChild(imgEl);
+        }
+
+        const checkMark = document.createElement('div');
+        checkMark.className = 'check-mark';
+        checkMark.textContent = '✓';
+        item.appendChild(checkMark);
+
+        // デフォルト以外は削除ボタン表示
+        if (!img.id.startsWith('def_')) {
+          const delBtn = document.createElement('button');
+          delBtn.className = 'delete-btn';
+          delBtn.textContent = '削除';
+          delBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            if (confirm(`画像「${img.name}」をライブラリから削除しますか？`)) {
+              await deleteImageFromStorage(img.id);
+              imageLibrary = imageLibrary.filter(i => i.id !== img.id);
+              selectedImageIdsForTpl.delete(img.id);
+              renderSettingsLibrary();
+              showToast('画像を削除しました');
+            }
+          });
+          item.appendChild(delBtn);
+        }
+
+        item.addEventListener('click', () => {
+          if (selectedImageIdsForTpl.has(img.id)) {
+            selectedImageIdsForTpl.delete(img.id);
+          } else {
+            selectedImageIdsForTpl.add(img.id);
+          }
+          renderSettingsLibrary();
+        });
+
+        libGrid.appendChild(item);
+      });
+    }
+
+    // 保存済みテンプレート一覧描画
+    function renderSavedTemplatesList() {
+      const listEl = document.getElementById('saved-templates-list');
+      listEl.innerHTML = '';
+
+      templates.forEach(tpl => {
+        const row = document.createElement('div');
+        row.className = 'template-item';
+
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'template-item-name';
+        nameSpan.textContent = `${tpl.name} (${tpl.imageIds.length}枚)`;
+
+        const btnGroup = document.createElement('div');
+        btnGroup.style.display = 'flex';
+        btnGroup.style.gap = '6px';
+
+        const editBtn = document.createElement('button');
+        editBtn.className = 'btn btn-secondary';
+        editBtn.style.padding = '4px 10px';
+        editBtn.style.fontSize = '0.85rem';
+        editBtn.textContent = '✏️ 編集';
+        editBtn.addEventListener('click', () => {
+          editingTemplateId = tpl.id;
+          document.getElementById('template-name-input').value = tpl.name;
+          selectedImageIdsForTpl = new Set(tpl.imageIds);
+          document.getElementById('save-template-btn').textContent = '💾 更新保存';
+          renderSettingsLibrary();
+          showToast(`テンプレート「${tpl.name}」を編集選択しました`);
+        });
+
+        btnGroup.appendChild(editBtn);
+
+        if (templates.length > 1) {
+          const delBtn = document.createElement('button');
+          delBtn.className = 'btn btn-danger';
+          delBtn.style.padding = '4px 10px';
+          delBtn.style.fontSize = '0.85rem';
+          delBtn.textContent = '🗑️ 削除';
+          delBtn.addEventListener('click', () => {
+            if (confirm(`テンプレート「${tpl.name}」を削除しますか？`)) {
+              templates = templates.filter(t => t.id !== tpl.id);
+              if (currentTemplateId === tpl.id) {
+                currentTemplateId = templates[0].id;
+              }
+              saveTemplates();
+              renderSavedTemplatesList();
+              showToast('テンプレートを削除しました');
+            }
+          });
+          btnGroup.appendChild(delBtn);
+        }
+
+        row.appendChild(nameSpan);
+        row.appendChild(btnGroup);
+        listEl.appendChild(row);
+      });
+    }
+
+    // 画像ファイルのアップロード登録
+    const fileInput = document.getElementById('image-file-input');
+    document.getElementById('upload-image-btn').addEventListener('click', () => {
+      fileInput.click();
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async (evt) => {
+        const newImg = {
+          id: 'custom_' + Date.now(),
+          type: 'url',
+          value: evt.target.result,
+          name: file.name.replace(/\.[^/.]+$/, "")
+        };
+        await saveImageToStorage(newImg);
+        imageLibrary.push(newImg);
+        selectedImageIdsForTpl.add(newImg.id);
+        renderSettingsLibrary();
+        showToast('新しい画像を追加しました');
+        fileInput.value = '';
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // テンプレートの保存・更新
+    document.getElementById('save-template-btn').addEventListener('click', () => {
+      const nameInput = document.getElementById('template-name-input');
+      const name = nameInput.value.trim();
+
+      if (!name) {
+        alert('テンプレート名を入力してください。');
+        return;
+      }
+      if (selectedImageIdsForTpl.size === 0) {
+        alert('画像ライブラリから少なくとも1つの画像を選択してください。');
+        return;
+      }
+
+      if (editingTemplateId) {
+        const target = templates.find(t => t.id === editingTemplateId);
+        if (target) {
+          target.name = name;
+          target.imageIds = Array.from(selectedImageIdsForTpl);
+        }
+        showToast('テンプレートを更新しました');
+      } else {
+        const newTpl = {
+          id: 'tpl_' + Date.now(),
+          name: name,
+          imageIds: Array.from(selectedImageIdsForTpl)
+        };
+        templates.push(newTpl);
+        currentTemplateId = newTpl.id;
+        showToast('新規テンプレートを保存しました');
+      }
+
+      saveTemplates();
+      resetTemplateForm();
+      renderSavedTemplatesList();
+    });
+
+    // --- テンプレート切替 & メイングリッド描画 ---
+    const templateSelect = document.getElementById('template-select');
+    const gridContainer = document.getElementById('grid-container');
+
+    function populateTemplateDropdown() {
+      templateSelect.innerHTML = '';
+      templates.forEach(tpl => {
+        const opt = document.createElement('option');
+        opt.value = tpl.id;
+        opt.textContent = tpl.name;
+        if (tpl.id === currentTemplateId) opt.selected = true;
+        templateSelect.appendChild(opt);
+      });
+    }
+
+    templateSelect.addEventListener('change', (e) => {
+      saveCurrentTemplateId(e.target.value);
+      renderMainGrid();
+    });
+
+    function renderMainGrid() {
+      populateTemplateDropdown();
+      gridContainer.innerHTML = '';
+
+      if (layoutMode === 'row') {
+        gridContainer.classList.add('layout-row');
+      } else {
+        gridContainer.classList.remove('layout-row');
+      }
+
+      const currentTpl = templates.find(t => t.id === currentTemplateId) || templates[0];
+      if (!currentTpl) return;
+
+      const targetImages = currentTpl.imageIds.map(id => imageLibrary.find(img => img.id === id)).filter(Boolean);
+
+      const count = targetImages.length;
+      if (count === 0) {
+        gridContainer.innerHTML = '<p style="font-size: 1.3rem; text-align:center;">画像が選択されていません。<br>設定（⚙️）から画像を登録してください。</p>';
+        return;
+      }
+
+      // レイアウトモード（グリッド / 横一列）に応じた配置計算
+      let cols = 2;
+      let rows = 1;
+
+      if (layoutMode === 'row') {
+        cols = count;
+        rows = 1;
+      } else {
+        if (count === 1) { cols = 1; rows = 1; }
+        else if (count === 2) { cols = 2; rows = 1; }
+        else if (count === 3 || count === 4) { cols = 2; rows = 2; }
+        else if (count === 5 || count === 6) { cols = 3; rows = 2; }
+        else if (count <= 9) { cols = 3; rows = 3; }
+        else { cols = 4; rows = Math.ceil(count / 4); }
+      }
+
+      gridContainer.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+      gridContainer.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+
+      targetImages.forEach(imgData => {
+        const card = document.createElement('div');
+        card.className = 'image-card';
+
+        if (imgData.type === 'emoji') {
+          const emojiEl = document.createElement('div');
+          emojiEl.className = 'emoji-display';
+          emojiEl.textContent = imgData.value;
+          card.appendChild(emojiEl);
+        } else {
+          const imgEl = document.createElement('img');
+          imgEl.src = imgData.value;
+          card.appendChild(imgEl);
+        }
+
+        // タッチ時のアニメーション & クローズアップ演出発動
+        card.addEventListener('pointerdown', (e) => {
+          e.preventDefault();
+          if (isTouchBlocked) return;
+          
+          handleImageCardClick(card);
+        });
+
+        gridContainer.appendChild(card);
+      });
+    }
+
+    // カード選択時の演出ロジック（クローズアップ & 周囲消滅）
+    function handleImageCardClick(selectedCard) {
+      isTouchBlocked = true;
+
+      // 1. 他のカードをフェードアウト
+      const allCards = Array.from(document.querySelectorAll('.image-card'));
+      allCards.forEach(card => {
+        if (card !== selectedCard) {
+          card.classList.add('fade-out');
+        }
+      });
+
+      // 2. 選んだカードの位置・サイズを取得してクローンを画面中央へ拡大移動
+      const rect = selectedCard.getBoundingClientRect();
+      const clone = selectedCard.cloneNode(true);
+      clone.classList.add('zoom-clone');
+
+      clone.style.left = `${rect.left}px`;
+      clone.style.top = `${rect.top}px`;
+      clone.style.width = `${rect.width}px`;
+      clone.style.height = `${rect.height}px`;
+      document.body.appendChild(clone);
+
+      selectedCard.style.opacity = '0';
+
+      const targetSize = Math.min(window.innerWidth * 0.72, window.innerHeight * 0.6);
+      const targetLeft = (window.innerWidth - targetSize) / 2;
+      const targetTop = (window.innerHeight - targetSize) / 2;
+
+      requestAnimationFrame(() => {
+        clone.style.left = `${targetLeft}px`;
+        clone.style.top = `${targetTop}px`;
+        clone.style.width = `${targetSize}px`;
+        clone.style.height = `${targetSize}px`;
+      });
+
+      // 3. Canvas爆発演出（星＆ハート）
+      const centerX = window.innerWidth / 2;
+      const centerY = targetTop + targetSize / 2;
+      triggerSuccessEffect(centerX, centerY);
+
+      // 4. 元の画面状態へ復元
+      setTimeout(() => {
+        clone.style.opacity = '0';
+        clone.style.transform = 'scale(0.8)';
+
+        setTimeout(() => {
+          if (clone.parentNode) clone.parentNode.removeChild(clone);
+          selectedCard.style.opacity = '1';
+          allCards.forEach(card => card.classList.remove('fade-out'));
+          isTouchBlocked = false;
+        }, 400);
+      }, 2300);
+    }
+
+    // --- Canvas 演出 (星・ハート弾け爆発) ---
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function drawStar(ctx, cx, cy, spikes, outerRadius, innerRadius, color) {
+      let rot = (Math.PI / 2) * 3;
+      let x = cx;
+      let y = cy;
+      let step = Math.PI / spikes;
+
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - outerRadius);
+      for (let i = 0; i < spikes; i++) {
+        x = cx + Math.cos(rot) * outerRadius;
+        y = cy + Math.sin(rot) * outerRadius;
+        ctx.lineTo(x, y);
+        rot += step;
+
+        x = cx + Math.cos(rot) * innerRadius;
+        y = cy + Math.sin(rot) * innerRadius;
+        ctx.lineTo(x, y);
+        rot += step;
+      }
+      ctx.lineTo(cx, cy - outerRadius);
+      ctx.closePath();
+      ctx.fillStyle = color;
+      ctx.fill();
+    }
+
+    function drawHeart(ctx, cx, cy, size, color) {
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.beginPath();
+      const topCurveHeight = size * 0.3;
+      ctx.moveTo(0, topCurveHeight);
+      ctx.bezierCurveTo(-size / 2, -size / 2, -size, topCurveHeight / 2, 0, size);
+      ctx.bezierCurveTo(size, topCurveHeight / 2, size / 2, -size / 2, 0, topCurveHeight);
+      ctx.closePath();
+      ctx.fillStyle = color;
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function triggerSuccessEffect(touchX, touchY) {
+      playCheerSound();
+
+      const particles = [];
+      const startTime = performance.now();
+      const duration = 1800;
+
+      const colors = [
+        '#ff2a6d', '#ffb800', '#00e676', '#1292ff', 
+        '#ff007f', '#e040fb', '#ffeb3b', '#00f5d4', '#ff70a6'
+      ];
+
+      for (let i = 0; i < 140; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 18 + 4;
+        const type = Math.random() < 0.5 ? 'star' : 'heart';
+        particles.push({
+          type: type,
+          x: touchX,
+          y: touchY,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed - 3.5,
+          size: Math.random() * 20 + 10,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          rotation: Math.random() * 360,
+          vRot: (Math.random() - 0.5) * 12
+        });
+      }
+
+      function render(currentTime) {
+        const elapsed = Math.max(0, currentTime - startTime);
+        const progress = Math.min(Math.max(0, elapsed / duration), 1);
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // サンバースト光線
+        if (progress < 0.8) {
+          ctx.save();
+          ctx.translate(touchX, touchY);
+          ctx.rotate(elapsed * 0.0015);
+          const rays = 14;
+          const maxRayLen = Math.max(canvas.width, canvas.height);
+          ctx.globalAlpha = Math.max(0, (1 - progress / 0.8) * 0.3);
+
+          for (let i = 0; i < rays; i++) {
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            const angle1 = (i * Math.PI * 2) / rays;
+            const angle2 = ((i + 0.45) * Math.PI * 2) / rays;
+            ctx.lineTo(Math.cos(angle1) * maxRayLen, Math.sin(angle1) * maxRayLen);
+            ctx.lineTo(Math.cos(angle2) * maxRayLen, Math.sin(angle2) * maxRayLen);
+            ctx.fillStyle = (i % 2 === 0) ? '#ffea00' : '#ff007f';
+            ctx.fill();
+          }
+          ctx.restore();
+        }
+
+        // 虹色リング波紋
+        if (progress < 0.75) {
+          const ringRadius = progress * Math.max(canvas.width, canvas.height) * 0.7;
+          ctx.beginPath();
+          ctx.arc(touchX, touchY, ringRadius, 0, Math.PI * 2);
+          ctx.lineWidth = 16;
+          ctx.strokeStyle = colors[Math.floor((elapsed / 70) % colors.length)];
+          ctx.globalAlpha = Math.max(0, 1 - progress / 0.75);
+          ctx.stroke();
+          ctx.globalAlpha = 1.0;
+        }
+
+        // 粒子アニメーション
+        particles.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.32;
+          p.rotation += p.vRot;
+
+          ctx.save();
+          ctx.globalAlpha = Math.max(0, 1 - progress * 0.95);
+
+          if (p.type === 'star') {
+            ctx.translate(p.x, p.y);
+            ctx.rotate((p.rotation * Math.PI) / 180);
+            drawStar(ctx, 0, 0, 5, p.size, p.size / 2, p.color);
+          } else {
+            ctx.translate(p.x, p.y);
+            ctx.rotate((p.rotation * Math.PI) / 180);
+            drawHeart(ctx, 0, 0, p.size, p.color);
+          }
+
+          ctx.restore();
+        });
+
+        if (progress < 1) {
+          animationFrameId = requestAnimationFrame(render);
+        } else {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+      }
+
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      animationFrameId = requestAnimationFrame(render);
+    }
+
+    // --- 初期化処理 ---
+    window.addEventListener('load', async () => {
+      await initDB();
+      const customImages = await loadCustomImagesFromStorage();
+      imageLibrary = [...DEFAULT_IMAGES, ...customImages];
+
+      const savedLayoutMode = localStorage.getItem(APP_PREFIX + 'layout_mode');
+      if (savedLayoutMode && (savedLayoutMode === 'grid' || savedLayoutMode === 'row')) {
+        layoutMode = savedLayoutMode;
+      }
+      setLayoutMode(layoutMode);
+
+      loadSettings();
+      renderMainGrid();
+    });
+  </script>
+</body>
+</html>
